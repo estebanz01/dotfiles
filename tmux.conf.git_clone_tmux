@@ -2,8 +2,9 @@
 ###########################################################################
 
 # Enable UTF-8
-setw -g utf8 on
-set-option -g status-utf8 on
+# This two options no longer exists in tmux 2.1
+# set -g utf8 on
+# set-option -g status-utf8 on
 
 # Scrollback/History limit
 set -g history-limit 500000
@@ -12,9 +13,10 @@ set -g history-limit 500000
 set -g base-index 1
 
 # Mouse
-setw -g mode-mouse on
-set-option -g mouse-select-pane on
-set -g mouse-utf8 off
+set -g mouse on
+# The following two options no longer exists in tmux 2.1
+# set-option -g mouse-select-pane on
+# set -g mouse-utf8 off
 
 # Force reload of config file
 unbind r
@@ -57,3 +59,30 @@ setw -g automatic-rename on
 
 # Better name management
 bind c new-window -c "#{pane_current_path}"
+
+### Tmux resurrect commands
+###########################################################################
+# Restore pane contents
+set -g @resurrect-capture-pane-contents 'on'
+
+### Tmux sidebar commands
+###########################################################################
+set -g @sidebar-tree-command 'tree -C' # Sidebar with colours
+
+### Plugins
+###########################################################################
+# Tmux Plugin Manager
+set -g @plugin 'tmux-plugins/tpm'
+set -g @plugin 'tmux-plugins/tmux-sensible'
+
+# Tmux resurrect plugin
+set -g @plugin 'tmux-plugins/tmux-resurrect'
+
+# Tmux copycat plugin
+set -g @plugin 'tmux-plugins/tmux-copycat'
+
+# Tmux sidebar plugin
+set -g @plugin 'tmux-plugins/tmux-sidebar'
+
+# run the Tmux Plugin Manager - SHOULD BE THE LAST LINE OF THIS FILE.
+run '~/tmux/plugins/tpm/tpm'

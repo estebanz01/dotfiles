@@ -113,73 +113,66 @@ if ! shopt -oq posix; then
   fi
 fi
 
+# Other alias
+alias virtualmachine='ssh ezapata@192.168.17.177'
 
-# my stuff
-
-
-if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
-    c_reset='\[\e[0m\]'
-    c_user='\[\033[0;96m\]'
-    c_path='\[\e[0;95m\]'
-    c_git_clean='\[\e[0;32m\]'
-    c_git_dirty='\[\e[0;31m\]'
-else
-    c_reset=
-    c_user=
-    c_path=
-    c_git_clean=
-    c_git_dirty=
-fi
- 
-stty ixany
-stty ixoff -ixon
-stty stop undef
-stty start undef
- 
-git_prompt ()
-{
-    if ! git rev-parse --git-dir > /dev/null 2>&1; then
-        return 0
-    fi
- 
-    git_branch=$(git branch 2>/dev/null| sed -n '/^\*/s/^\* //p')
- 
-    if git diff --quiet 2>/dev/null >&2; then
-        git_color="${c_git_clean}"
-    else
-        git_color=${c_git_dirty}
-    fi
- 
-    echo " [$git_color$git_branch${c_reset}]"
-}
- 
-
-PROMPT_COMMAND='PS1="(VM) - ${c_user}\u${c_reset}:${c_path}\w ($(rvm-prompt))${c_reset}$(git_prompt)\$ "'
-
-
-alias m3='cd ~/vhl/m3'
-alias ua='cd ~/vhl/ua'
-alias api='cd ~/vhl/api'
-alias vhlstyle='cd ~/vhl/ruby-style-guide'
-alias runm3='m3 && rails server -p3001'
-alias runapi='api && rails server -p3003'
-alias runua='ua && rails server'
-alias maestroclient='cd ~/vhl/maestro_client'
-alias migrateall='rake db:migrate && rake db:migrate RAILS_ENV=test'
-alias rollbackall='rake db:rollback && rake db:rollback RAILS_ENV=test'
-alias maestrocore='cd ~/vhl/maestro_core'
-alias mae='cd ~/vhl/mae'
-alias cms='cd ~/vhl/cms'
 export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+export PATH="$PATH:$HOME/tmux" # Make tmux globally accesible.
 
-##### share history across terminals ######
-# Avoid duplicates
-export HISTCONTROL=ignoredups:erasedups  
-# When the shell exits, append to the history file instead of overwriting it
-shopt -s histappend
+#### Beautify Bash
 
-# After each command, append to the history file and reread it
-export PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND$'\n'}history -a; history -c; history -r"
+# Constants
+COLOR_RED="\033[0;31m"
+COLOR_YELLOW="\033[0;33m"
+COLOR_GREEN="\033[0;32m"
+COLOR_BLUE="\033[0;34m"
+COLOR_WHITE="\033[0;37m"
+COLOR_BOLD_WHITE="\e[1;37m"
+COLOR_ORANGE="\e[38;5;202m"
+COLOR_RESET="\033[0m"
 
-#########################################
+# Functions
 
+function smiley_face {
+  echo " 🐵  "
+}
+
+function git_color {
+  local git_status="$(git status 2> /dev/null)"
+
+  if [[ -z "$git_status" ]]; then
+      echo -e $COLOR_ORANGE
+  elif [[ ! $git_status =~ "working directory clean" ]]; then
+      echo -e $COLOR_RED
+  elif [[ $git_status =~ "Your branch is ahead of" ]]; then
+    echo -e $COLOR_YELLOW
+  elif [[ $git_status =~ "nothing to commit" ]]; then
+    echo -e $COLOR_GREEN
+  fi
+}
+
+function git_branch {
+  local git_status="$(git status 2>/dev/null)"
+  local on_branch=$(git branch 2>/dev/null| sed -n '/^\*/s/^\* //p')
+  local on_commit="HEAD detached at ([^${IFS}]*)"
+  
+  if [[ -z "$git_status" ]]; then
+    echo "[$(smiley_face)]"
+  elif [[ $git_status =~ $on_branch ]]; then # If status is not commit
+    local branch=${BASH_REMATCH}
+    echo "($branch)"
+  elif [[ $git_status =~ $on_commit ]]; then # If status is a commit
+    local commit=${BASH_REMATCH[1]}
+    echo "($commit)"
+  fi
+}
+
+# PS1 definition
+PS1="\[$WHITE\]\n\[(LOCAL)\]"                    # constant to know where I am.
+PS1+="[\W] "                                     # basename of pwd
+PS1+="\[\$(git_color)\]"                         # colors git status
+PS1+=" \[\$(git_branch)\]"                       # prints current branch
+PS1+=" [$(rvm-prompt)]"                          # Ruby version
+PS1+="\[$BLUE\]\$\[$RESET\] "                    # '#' for root, else '$'
+PS1+="\[$COLOR_RESET\]$COLOR_BOLD_WHITE"         # Color reset and bold white
+export PS1
