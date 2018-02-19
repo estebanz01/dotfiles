@@ -1,3 +1,23 @@
+function create_signed_cert {
+  printf "\n#############################################\n"
+  appname="$1"
+  printf "\nCreating certs for app with name $appname\n### Step 1 ###\n"
+
+  openssl genrsa -des3 -out "$appname.key" -passout pass:abc123 2048
+  openssl req -new -key "$appname.key" -out "$appname.csr" -passin pass:abc123
+
+  printf "\n### Step 2 ###\n"
+  cp -v $appname.{key,original}
+  openssl rsa -in "$appname".original -passin pass:abc123 -out "$appname".key
+  rm -v "$appname".original
+
+  printf "\n### Step 3 ###\n"
+  openssl x509 -req -days 365 -in "$appname".csr -signkey "$appname".key -out "$appname".crt
+
+  printf "\nDone! Copy the $appname.key and $appname.crt to the desired location.\n"
+}
+
+export -f create_signed_cert
 export HISTTIMEFORMAT='%Y-%b-%d %a %H:%M:%S - '
 export PROMPT_COMMAND='history -a'
 
@@ -15,17 +35,34 @@ alias rc='rails console'
 
 alias lh='ls -lAhrt --color'
 
-alias api='cd ~/dev/api'
-alias cms='cd ~/dev/cms && git remote update > /dev/null && git status -sbuno'
-alias m3='cd ~/dev/m3 && git remote update > /dev/null && git status -sbuno'
-alias mae='cd ~/dev/mae'
-alias maestroclient='cd ~/dev/maestro_client'
-alias ua='cd ~/dev/ua && rvm use ree && git remote update > /dev/null && git status -sbuno'
+alias submissions='cd ~/vhl/submissions'
+alias chef='cd ~/vhl/chef-repo'
 
-alias apiserver='api; rails server -p 3003'
-alias cmsserver='cms; rails server -p 3002'
-alias m3server='m3; rails server -p3001'
-alias uaserver='ua; ruby script/server -p3000'
+alias m3='cd ~/vhl/m3'
+alias ua='cd ~/vhl/ua'
+alias api='cd ~/vhl/api'
+alias vhlstyle='cd ~/vhl/ruby-style-guide'
+alias maestroclient='cd ~/vhl/maestro_client'
+alias maestrocore='cd ~/vhl/maestro_core'
+alias mae='cd ~/vhl/mae'
+alias cms='cd ~/vhl/cms'
+alias hicks='cd ~/vhl/hicks'
+alias salesanalytics="cd ~/vhl/sales_analytics"
+alias andromedavhl="cd ~/vhl/andromeda"
+alias diller="cd ~/vhl/diller"
+alias vhl-stats="cd ~/vhl/vhl-stats"
 
+alias migrateall='rake db:migrate && rake db:migrate RAILS_ENV=test'
+alias rollbackall='rake db:rollback && rake db:rollback RAILS_ENV=test'
 
-export M3_APP_PATH=~/dev/m3
+alias hydra="ssh ezapata@hydra.vistahl.com"
+alias updatectags="ctags -R --exclude=public/*"
+
+alias masterbranch="git co master && git pull && gem install bundler && bundle install && git gc && updatectags"
+alias restartservices="sudo service nginx restart && sudo service mysql restart && redis-cli FLUSHALL && sudo systemctl restart cmb && sudo service cassandra restart"
+alias startsidekiq="sudo pkill sidekiq; ua && sidekiq -d && m3 && sidekiq -d && api && sidekiq -d"
+
+alias masterall="ua && masterbranch && api && masterbranch && m3 && masterbranch && mae && masterbranch && maestroclient && masterbranch && submissions && masterbranch && vhl-stats && masterbranch && andromedavhl && masterbranch && diller && masterbranch && restartservices && startsidekiq && ua"
+
+alias updateall="sudo apt-get -y autoremove && sudo apt-get -y autoclean && sudo apt-get -y update && sudo apt-get -y upgrade -y && sudo apt-get -y autoclean && sudo apt-get -y autoremove"
+
