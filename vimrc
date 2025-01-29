@@ -1,4 +1,5 @@
 
+
 set nocompatible              " be iMproved, required
 filetype off                  " required
 
@@ -78,6 +79,15 @@ Plugin 'airblade/vim-gitgutter'
 
 " Allow to comment selection with one command
 Plugin 'tpope/vim-commentary'
+
+" Rust syntax
+Plugin 'rust-lang/rust.vim'
+
+" Elixir syntax
+Plugin 'elixir-editors/vim-elixir'
+
+" Terraform syntax
+Plugin 'hashivim/vim-terraform'
 
 call vundle#end()            " required
 filetype plugin indent on    " required
@@ -277,3 +287,8 @@ map <Leader>x :w<cr>:!pandoc % \| lynx -stdin<cr>:redraw!<cr>
 
 " Hide git gutter if the number of changes i greater than the specified value
 let g:gitgutter_max_signs = 500
+
+" Vim-Elixir workaround for Heex files.
+au BufRead,BufNewFile *.ex,*.exs set filetype=elixir
+au BufRead,BufNewFile *.eex,*.heex,*.leex,*.sface,*.lexs set filetype=eelixir
+au BufRead,BufNewFile mix.lock set filetype=elixir
